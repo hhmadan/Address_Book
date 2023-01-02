@@ -59,19 +59,47 @@ func AddContact(ContactList *[]Contact) {
 	}
 }
 
+// to delete contact from Contact List
+
+func delete(ContactList *[]Contact) {
+	var fName string
+	fmt.Println("Enter First Name to delete")
+	fmt.Scanln(&fName)
+	for i, val := range *ContactList {
+		if val.FirstName == fName {
+			*ContactList = append((*ContactList)[:i], (*ContactList)[i+1:]...)
+			fmt.Println("Contact Deleted Successfully..!")
+			return
+		}
+	}
+	fmt.Println("Contact Don't Exist..!")
+}
+
+//To display all contacts in Contact List
+
+func Display(ContactList *[]Contact) {
+	fmt.Println("----Contact List----")
+	for _, val := range *ContactList {
+		fmt.Println(val)
+	}
+}
+
 /*
 	display to user for selecting required operations on contact list
 */
 
 func menu(ContactList *[]Contact) {
 	var menuOption int
-	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Exit")
+	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Display Contact List\n4.Exit")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
-		fmt.Println("Enter First Name:")
 		AddContact(ContactList)
 	case 2:
+		delete(ContactList)
+	case 3:
+		Display(ContactList)
+	case 4:
 		fmt.Println("Exiting...")
 		os.Exit(0)
 	}
