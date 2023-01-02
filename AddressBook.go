@@ -95,6 +95,26 @@ func searchByCity(ContactList *[]Contact) {
 	fmt.Println("City List of Persons: ", cityList)
 }
 
+/*
+Logic: Func to find contacts of same State and display them.
+Creating new Slice to store contacts of same State
+*/
+func searchByState(ContactList *[]Contact) {
+	var inputStateName string
+	stateList := []Contact{}
+
+	fmt.Println("Enter Name of State to search People: ")
+	fmt.Scanln(&inputStateName)
+
+	stateName := strings.TrimSpace(inputStateName)
+	for _, contact := range *ContactList {
+		if contact.State == stateName {
+			stateList = append(stateList, contact)
+		}
+	}
+	fmt.Println("State List of Persons: ", stateList)
+}
+
 //To display all contacts in Contact List
 
 func Display(ContactList *[]Contact) {
@@ -110,7 +130,7 @@ func Display(ContactList *[]Contact) {
 
 func menu(ContactList *[]Contact) {
 	var menuOption int
-	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Search By City\n4.Display Contact List\n5.Exit")
+	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Search By City\n4.Search By State\n5.Display Contact List\n6.Exit")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
@@ -120,8 +140,10 @@ func menu(ContactList *[]Contact) {
 	case 3:
 		searchByCity(ContactList)
 	case 4:
-		Display(ContactList)
+		searchByState(ContactList)
 	case 5:
+		Display(ContactList)
+	case 6:
 		fmt.Println("Exiting...")
 		os.Exit(0)
 	}
