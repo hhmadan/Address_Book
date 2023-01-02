@@ -75,6 +75,26 @@ func delete(ContactList *[]Contact) {
 	fmt.Println("Contact Don't Exist..!")
 }
 
+/*
+Logic: Func to find contacts of same City and display them.
+Creating new Slice to store contacts of same City
+*/
+func searchByCity(ContactList *[]Contact) {
+	var inputCityName string
+	cityList := []Contact{}
+
+	fmt.Println("Enter Name of City to search People: ")
+	fmt.Scanln(&inputCityName)
+
+	cityName := strings.TrimSpace(inputCityName)
+	for _, contact := range *ContactList {
+		if contact.City == cityName {
+			cityList = append(cityList, contact)
+		}
+	}
+	fmt.Println("City List of Persons: ", cityList)
+}
+
 //To display all contacts in Contact List
 
 func Display(ContactList *[]Contact) {
@@ -90,7 +110,7 @@ func Display(ContactList *[]Contact) {
 
 func menu(ContactList *[]Contact) {
 	var menuOption int
-	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Display Contact List\n4.Exit")
+	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Search By City\n4.Display Contact List\n5.Exit")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
@@ -98,8 +118,10 @@ func menu(ContactList *[]Contact) {
 	case 2:
 		delete(ContactList)
 	case 3:
-		Display(ContactList)
+		searchByCity(ContactList)
 	case 4:
+		Display(ContactList)
+	case 5:
 		fmt.Println("Exiting...")
 		os.Exit(0)
 	}
