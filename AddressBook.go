@@ -96,7 +96,7 @@ func searchByCity(ContactList *[]Contact) {
 }
 
 /*
-Logic: Func to find contacts of same State and display them.
+@Logic: Func to find contacts of same State and display them.
 Creating new Slice to store contacts of same State
 */
 func searchByState(ContactList *[]Contact) {
@@ -115,10 +115,56 @@ func searchByState(ContactList *[]Contact) {
 	fmt.Println("State List of Persons: ", stateList)
 }
 
+//Function to Edit an existing Contact
+
+func editContact(ContactList *[]Contact, nameToChange string) {
+
+	var newFName, newLName, newAddress, newCity, newState, newPhoneNum, newEmail string
+	var editChoice int
+
+	for i, contact := range *ContactList {
+		if contact.FirstName == nameToChange {
+			fmt.Println("1.First Name\n2.Last Name\n3.Address\n4.City\n5.State\n6.Phone Number\n7.Email-Id")
+			fmt.Println("Enter choice to Edit : ")
+			fmt.Scanln(&editChoice)
+			switch editChoice {
+			case 1:
+				fmt.Println("New First Name: ")
+				fmt.Scanln(&newFName)
+				(*ContactList)[i].FirstName = newFName
+			case 2:
+				fmt.Println("New Last Name: ")
+				fmt.Scanln(&newLName)
+				(*ContactList)[i].LastName = newLName
+			case 3:
+				fmt.Println("New Address: ")
+				fmt.Scanln(&newAddress)
+				(*ContactList)[i].Address = newAddress
+			case 4:
+				fmt.Println("New City: ")
+				fmt.Scanln(&newCity)
+				(*ContactList)[i].City = newCity
+			case 5:
+				fmt.Println("New State: ")
+				fmt.Scanln(&newState)
+				(*ContactList)[i].State = newState
+			case 6:
+				fmt.Println("New Phone Number: ")
+				fmt.Scanln(&newPhoneNum)
+				(*ContactList)[i].PhoneNumber = newPhoneNum
+			case 7:
+				fmt.Println("New Email-Id: ")
+				fmt.Scanln(&newEmail)
+				(*ContactList)[i].Email = newEmail
+			}
+		}
+	}
+}
+
 //To display all contacts in Contact List
 
 func Display(ContactList *[]Contact) {
-	fmt.Println("----Contact List----")
+	fmt.Println("\n----Contact List----")
 	for _, val := range *ContactList {
 		fmt.Println(val)
 	}
@@ -130,7 +176,7 @@ func Display(ContactList *[]Contact) {
 
 func menu(ContactList *[]Contact) {
 	var menuOption int
-	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Search By City\n4.Search By State\n5.Display Contact List\n6.Exit")
+	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Edit Contact\n4.Search By City\n5.Search By State\n6.Display Contact List\n7.Exit")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
@@ -138,12 +184,24 @@ func menu(ContactList *[]Contact) {
 	case 2:
 		delete(ContactList)
 	case 3:
-		searchByCity(ContactList)
+		var nameToChange string
+		fmt.Println("Enter First Name to edit :")
+		fmt.Scanln(&nameToChange)
+
+		for _, v := range *ContactList {
+			if v.FirstName == nameToChange {
+				editContact(ContactList, nameToChange)
+			} else {
+				fmt.Println("No Contact Found..!")
+			}
+		}
 	case 4:
-		searchByState(ContactList)
+		searchByCity(ContactList)
 	case 5:
-		Display(ContactList)
+		searchByState(ContactList)
 	case 6:
+		Display(ContactList)
+	case 7:
 		fmt.Println("Exiting...")
 		os.Exit(0)
 	}
@@ -151,7 +209,7 @@ func menu(ContactList *[]Contact) {
 }
 
 func main() {
-	fmt.Println("******WELCOME TO ADDRESS BOOK******")
+	fmt.Println("\n******WELCOME TO ADDRESS BOOK******")
 	var ContactList = []Contact{}
 	menu(&ContactList)
 }
