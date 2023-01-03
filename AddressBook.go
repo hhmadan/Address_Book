@@ -17,6 +17,20 @@ type Contact struct {
 }
 
 /*
+	Filter Function to get Duplicate Contacts
+*/
+
+func duplicateCheckFilter(ContactList *[]Contact, f func(string) bool) []Contact {
+	filteredDuplicateNames := []Contact{}
+	for _, fName := range *ContactList {
+		if f(fName.FirstName) {
+			filteredDuplicateNames = append(filteredDuplicateNames, fName)
+		}
+	}
+	return filteredDuplicateNames
+}
+
+/*
 	@paramters: contact list of Contact type
 	logic: creating and adding contacts to contact list
 */
@@ -25,37 +39,51 @@ func AddContact(ContactList *[]Contact) {
 
 	var option string
 	var person Contact
+	var firstName string
 
 	fmt.Println("Enter First Name: ")
-	fmt.Scanln(&person.FirstName)
+	fmt.Scanln(&firstName)
 
-	fmt.Println("Enter Last Name: ")
-	fmt.Scanln(&person.LastName)
+	checkDuplicate := duplicateCheckFilter(ContactList, func(fName string) bool {
+		if fName == firstName {
+			return true
+		}
+		return false
+	})
+	if len(checkDuplicate) > 0 {
+		fmt.Println("Contact Already Exists..!")
 
-	fmt.Println("Enter Address: ")
-	fmt.Scanln(&person.Address)
-
-	fmt.Println("Enter City: ")
-	fmt.Scanln(&person.City)
-
-	fmt.Println("Enter State: ")
-	fmt.Scanln(&person.State)
-
-	fmt.Println("Enter Phone Number: ")
-	fmt.Scanln(&person.PhoneNumber)
-
-	fmt.Println("Enter Email-Id: ")
-	fmt.Scanln(&person.Email)
-
-	*ContactList = append(*ContactList, person)
-
-	fmt.Println("Want to Add More Contact? Press Y or N")
-	fmt.Scanln(&option)
-
-	if strings.ToUpper(option) == "Y" {
-		AddContact(ContactList)
 	} else {
-		return
+		person.FirstName = firstName
+
+		fmt.Println("Enter Last Name: ")
+		fmt.Scanln(&person.LastName)
+
+		fmt.Println("Enter Address: ")
+		fmt.Scanln(&person.Address)
+
+		fmt.Println("Enter City: ")
+		fmt.Scanln(&person.City)
+
+		fmt.Println("Enter State: ")
+		fmt.Scanln(&person.State)
+
+		fmt.Println("Enter Phone Number: ")
+		fmt.Scanln(&person.PhoneNumber)
+
+		fmt.Println("Enter Email-Id: ")
+		fmt.Scanln(&person.Email)
+
+		*ContactList = append(*ContactList, person)
+
+		fmt.Println("Want to Add More Contact? Press Y or N")
+		fmt.Scanln(&option)
+
+		if strings.ToUpper(option) == "Y" {
+			AddContact(ContactList)
+		} else {
+			return
+		}
 	}
 }
 
