@@ -19,25 +19,19 @@ var db *sql.DB
 @ Displaying Menu Options to select Operation to be performed on Adress Book
 */
 func menu() {
-	var menuOption, id int
-	fmt.Printf("\n----CONTACT MENU----\n1.Add Contact\n2.Update Contact\n3.Search By City OR State\n4.Get Count Of Persons of City or State\n5.Delete Contact\n6.Display Contact List\n7.Exit\n")
+	var menuOption int
+	fmt.Printf("\n----CONTACT MENU----\n1.Add Contact\n2.Search By City OR State\n3.Get Count Of Persons of City or State\n4.Display Contact List\n5.Exit\n")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
 		addContact()
 	case 2:
-		fmt.Println("Enter ID Of Contact: ")
-		fmt.Scanln(&id)
-		updateContact(id)
-	case 3:
 		searchByCityState()
-	case 4:
+	case 3:
 		countByCityState()
-	case 5:
-		deleteContact()
-	case 6:
+	case 4:
 		fmt.Println(readDataFromDB())
-	case 7:
+	case 5:
 		//os.Exit(0)
 		return
 	default:
@@ -154,81 +148,6 @@ func countByCityState() {
 		}
 		fmt.Printf("Found Person Count for given City: %s", city)
 	}
-}
-
-/*
-	Update or editing the given contact
-*/
-
-func updateContact(id int) {
-	var newFName, newLName, newAddress, newCity, newState, newPhoneNum, newEmail string
-	var editChoice int
-
-	fmt.Println("Select Choice to Edit\n1.First Name\n2.Last Name\n3.Address\n4.City\n5.State\n6.Phone Number\n7.Email-Id")
-	fmt.Println("Enter choice: ")
-	fmt.Scanln(&editChoice)
-	switch editChoice {
-	case 1:
-		fmt.Println("New First Name: ")
-		fmt.Scanln(&newFName)
-		result, _ := db.Exec("UPDATE contact SET first_name = ? WHERE id = ?", newFName, id)
-		id, _ := result.RowsAffected()
-		fmt.Println(id)
-	case 2:
-		fmt.Println("New Last Name: ")
-		fmt.Scanln(&newLName)
-		result, _ := db.Exec("UPDATE contact SET last_name = ? WHERE id = ?", newLName, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	case 3:
-		fmt.Println("New Address: ")
-		fmt.Scanln(&newAddress)
-		result, _ := db.Exec("UPDATE contact SET address = ? WHERE id = ?", newAddress, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	case 4:
-		fmt.Println("New City: ")
-		fmt.Scanln(&newCity)
-		result, _ := db.Exec("UPDATE contact SET city = ? WHERE id = ?", newCity, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	case 5:
-		fmt.Println("New State: ")
-		fmt.Scanln(&newState)
-		result, _ := db.Exec("UPDATE contact SET state = ? WHERE id = ?", newState, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	case 6:
-		fmt.Println("New Phone Number: ")
-		fmt.Scanln(&newPhoneNum)
-		result, _ := db.Exec("UPDATE contact SET phone_number = ? WHERE id = ?", newPhoneNum, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	case 7:
-		fmt.Println("New Email-Id: ")
-		fmt.Scanln(&newEmail)
-		result, _ := db.Exec("UPDATE contact SET email = ? WHERE id = ?", newEmail, id)
-		id, _ := result.RowsAffected()
-		fmt.Printf("Successfully updated %v contact..!", id)
-	}
-}
-
-/*
-@ Delete existing contact from DataBase
-*/
-func deleteContact() {
-	var delete_id int
-	fmt.Println("Enter ID to Delete Permanently: ")
-	fmt.Scanln(&delete_id)
-
-	result, err := db.Exec("DELETE from Contact WHERE id = ?", delete_id)
-	if err != nil {
-		panic(err.Error())
-	}
-	id, err := result.RowsAffected()
-
-	fmt.Printf("Successfully Deleted %v Row..!", id)
-
 }
 
 /*
