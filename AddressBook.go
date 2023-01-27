@@ -1,243 +1,274 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
-	"os"
-	"strings"
+	"log"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Contact struct {
-	FirstName   string
-	LastName    string
-	Address     string
-	City        string
-	State       string
-	PhoneNumber string
-	Email       string
+	id                                                            int
+	FirstName, LastName, Address, City, State, PhoneNumber, Email string
 }
+
+var db *sql.DB
 
 /*
-	Filter Function to get Duplicate Contacts
+@ Displaying Menu Options to select Operation to be performed on Adress Book
 */
-
-func duplicateCheckFilter(ContactList *[]Contact, f func(string) bool) []Contact {
-	filteredDuplicateNames := []Contact{}
-	for _, fName := range *ContactList {
-		if f(fName.FirstName) {
-			filteredDuplicateNames = append(filteredDuplicateNames, fName)
-		}
-	}
-	return filteredDuplicateNames
-}
-
-/*
-	@paramters: contact list of Contact type
-	logic: creating and adding contacts to contact list
-*/
-
-func AddContact(ContactList *[]Contact) {
-
-	var option string
-	var person Contact
-	var firstName string
-
-	fmt.Println("Enter First Name: ")
-	fmt.Scanln(&firstName)
-
-	checkDuplicate := duplicateCheckFilter(ContactList, func(fName string) bool {
-		if fName == firstName {
-			return true
-		}
-		return false
-	})
-	if len(checkDuplicate) > 0 {
-		fmt.Println("Contact Already Exists..!")
-
-	} else {
-		person.FirstName = firstName
-
-		fmt.Println("Enter Last Name: ")
-		fmt.Scanln(&person.LastName)
-
-		fmt.Println("Enter Address: ")
-		fmt.Scanln(&person.Address)
-
-		fmt.Println("Enter City: ")
-		fmt.Scanln(&person.City)
-
-		fmt.Println("Enter State: ")
-		fmt.Scanln(&person.State)
-
-		fmt.Println("Enter Phone Number: ")
-		fmt.Scanln(&person.PhoneNumber)
-
-		fmt.Println("Enter Email-Id: ")
-		fmt.Scanln(&person.Email)
-
-		*ContactList = append(*ContactList, person)
-
-		fmt.Println("Want to Add More Contact? Press Y or N")
-		fmt.Scanln(&option)
-
-		if strings.ToUpper(option) == "Y" {
-			AddContact(ContactList)
-		} else {
-			return
-		}
-	}
-}
-
-// to delete contact from Contact List
-
-func delete(ContactList *[]Contact) {
-	var fName string
-	fmt.Println("Enter First Name to delete")
-	fmt.Scanln(&fName)
-	for i, val := range *ContactList {
-		if val.FirstName == fName {
-			*ContactList = append((*ContactList)[:i], (*ContactList)[i+1:]...)
-			fmt.Println("Contact Deleted Successfully..!")
-			return
-		}
-	}
-	fmt.Println("Contact Don't Exist..!")
-}
-
-/*
-Logic: Func to find contacts of same City and display them.
-Creating new Slice to store contacts of same City
-*/
-func searchByCity(ContactList *[]Contact) {
-	var inputCityName string
-	cityList := []Contact{}
-
-	fmt.Println("Enter Name of City to search People: ")
-	fmt.Scanln(&inputCityName)
-
-	cityName := strings.TrimSpace(inputCityName)
-	for _, contact := range *ContactList {
-		if contact.City == cityName {
-			cityList = append(cityList, contact)
-		}
-	}
-	fmt.Println("City List of Persons: ", cityList)
-}
-
-/*
-@Logic: Func to find contacts of same State and display them.
-Creating new Slice to store contacts of same State
-*/
-func searchByState(ContactList *[]Contact) {
-	var inputStateName string
-	stateList := []Contact{}
-
-	fmt.Println("Enter Name of State to search People: ")
-	fmt.Scanln(&inputStateName)
-
-	stateName := strings.TrimSpace(inputStateName)
-	for _, contact := range *ContactList {
-		if contact.State == stateName {
-			stateList = append(stateList, contact)
-		}
-	}
-	fmt.Println("State List of Persons: ", stateList)
-}
-
-//Function to Edit an existing Contact
-
-func editContact(ContactList *[]Contact, nameToChange string) {
-
-	var newFName, newLName, newAddress, newCity, newState, newPhoneNum, newEmail string
-	var editChoice int
-
-	for i, contact := range *ContactList {
-		if contact.FirstName == nameToChange {
-			fmt.Println("1.First Name\n2.Last Name\n3.Address\n4.City\n5.State\n6.Phone Number\n7.Email-Id")
-			fmt.Println("Enter choice to Edit : ")
-			fmt.Scanln(&editChoice)
-			switch editChoice {
-			case 1:
-				fmt.Println("New First Name: ")
-				fmt.Scanln(&newFName)
-				(*ContactList)[i].FirstName = newFName
-			case 2:
-				fmt.Println("New Last Name: ")
-				fmt.Scanln(&newLName)
-				(*ContactList)[i].LastName = newLName
-			case 3:
-				fmt.Println("New Address: ")
-				fmt.Scanln(&newAddress)
-				(*ContactList)[i].Address = newAddress
-			case 4:
-				fmt.Println("New City: ")
-				fmt.Scanln(&newCity)
-				(*ContactList)[i].City = newCity
-			case 5:
-				fmt.Println("New State: ")
-				fmt.Scanln(&newState)
-				(*ContactList)[i].State = newState
-			case 6:
-				fmt.Println("New Phone Number: ")
-				fmt.Scanln(&newPhoneNum)
-				(*ContactList)[i].PhoneNumber = newPhoneNum
-			case 7:
-				fmt.Println("New Email-Id: ")
-				fmt.Scanln(&newEmail)
-				(*ContactList)[i].Email = newEmail
-			}
-		}
-	}
-}
-
-//To display all contacts in Contact List
-
-func Display(ContactList *[]Contact) {
-	fmt.Println("\n----Contact List----")
-	for _, val := range *ContactList {
-		fmt.Println(val)
-	}
-}
-
-/*
-	display to user for selecting required operations on contact list
-*/
-
-func menu(ContactList *[]Contact) {
-	var menuOption int
-	fmt.Println("----CONTACT MENU----\n1.Add Contact\n2.Delete Contact\n3.Edit Contact\n4.Search By City\n5.Search By State\n6.Display Contact List\n7.Exit")
+func menu() {
+	var menuOption, id int
+	fmt.Printf("\n----CONTACT MENU----\n1.Add Contact\n2.Update Contact\n3.Search By City OR State\n4.Get Count Of Persons of City or State\n5.Delete Contact\n6.Display Contact List\n7.Exit\n")
 	fmt.Scanln(&menuOption)
 	switch menuOption {
 	case 1:
-		AddContact(ContactList)
+		addContact()
 	case 2:
-		delete(ContactList)
+		fmt.Println("Enter ID Of Contact: ")
+		fmt.Scanln(&id)
+		updateContact(id)
 	case 3:
-		var nameToChange string
-		fmt.Println("Enter First Name to edit :")
-		fmt.Scanln(&nameToChange)
-
-		for _, v := range *ContactList {
-			if v.FirstName == nameToChange {
-				editContact(ContactList, nameToChange)
-			} else {
-				fmt.Println("No Contact Found..!")
-			}
-		}
+		searchByCityState()
 	case 4:
-		searchByCity(ContactList)
+		countByCityState()
 	case 5:
-		searchByState(ContactList)
+		deleteContact()
 	case 6:
-		Display(ContactList)
+		fmt.Println(readDataFromDB())
 	case 7:
-		fmt.Println("Exiting...")
-		os.Exit(0)
+		//os.Exit(0)
+		return
+	default:
+		fmt.Println("Invalid Choice")
 	}
-	menu(ContactList)
+	menu()
+}
+
+/* Feed user inputs to database to add contacts in Address Book */
+
+func addContact() (int64, error) {
+	var person Contact
+
+	fmt.Println("Enter First Name: ")
+	fmt.Scanln(&person.FirstName)
+
+	fmt.Println("Enter Last Name: ")
+	fmt.Scanln(&person.LastName)
+
+	fmt.Println("Enter Address: ")
+	fmt.Scanln(&person.Address)
+
+	fmt.Println("Enter City: ")
+	fmt.Scanln(&person.City)
+
+	fmt.Println("Enter State: ")
+	fmt.Scanln(&person.State)
+
+	fmt.Println("Enter Phone Number: ")
+	fmt.Scanln(&person.PhoneNumber)
+
+	fmt.Println("Enter Email-Id: ")
+	fmt.Scanln(&person.Email)
+
+	result, err := db.Exec("INSERT INTO contact(first_name, last_name, address, city, state, phone_number, email) VALUES (?, ?, ?, ?, ?, ?, ?)", person.FirstName, person.LastName, person.Address, person.City, person.State, person.PhoneNumber, person.Email)
+	if err != nil {
+		return 0, fmt.Errorf("add person: %v", err)
+	}
+	fmt.Println("Contact Added Succesfully..!")
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("add person: %v", err)
+	}
+	return id, nil
+}
+
+/*
+@ retrieve data of contacts based on city and state
+*/
+func searchByCityState() {
+	var inputCityStateName string
+	var choice int
+	var contacts []Contact
+	fmt.Printf("1.Search by City\n2.Search by State\n")
+	fmt.Scanln(&choice)
+
+	if choice == 1 {
+		fmt.Println("Enter Name of City to search People: ")
+		fmt.Scanln(&inputCityStateName)
+
+		rows, err := db.Query("SELECT * FROM contact where city = ?", inputCityStateName)
+		//rows, err := db.Query("SELECT * FROM contact where city = ' " + inputCityStateName + " ';")
+		if err != nil {
+			panic(err.Error())
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var person Contact
+			if err := rows.Scan(&person.id, &person.FirstName, &person.LastName, &person.Address, &person.City, &person.State, &person.PhoneNumber, &person.Email); err != nil {
+				panic(err.Error())
+			}
+			contacts = append(contacts, person)
+		}
+		fmt.Println("Available Contacts in city: ", contacts)
+	} else {
+		fmt.Println("Enter Name of State to search People: ")
+		fmt.Scanln(&inputCityStateName)
+
+		rows, err := db.Query("SELECT * FROM contact where state = ?", inputCityStateName)
+		if err != nil {
+			panic(err.Error())
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var person Contact
+			if err := rows.Scan(&person.id, &person.FirstName, &person.LastName, &person.Address, &person.City, &person.State, &person.PhoneNumber, &person.Email); err != nil {
+				panic(err.Error())
+			}
+			contacts = append(contacts, person)
+		}
+		fmt.Println("Available Contacts in State: ", contacts)
+	}
+}
+
+/*
+@ Getting count for Contacts available in given City or State
+*/
+func countByCityState() {
+	var inputCityStateName string
+
+	fmt.Println("Enter Name of City or State to get People count: ")
+	fmt.Scanln(&inputCityStateName)
+	rows, err := db.Query("SELECT COUNT(*) FROM contact WHERE city = ? or state = ?", inputCityStateName, inputCityStateName)
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var city string
+		if err := rows.Scan(&city); err != nil {
+			panic(err.Error())
+		}
+		fmt.Printf("Found Person Count for given City: %s", city)
+	}
+}
+
+/*
+	Update or editing the given contact
+*/
+
+func updateContact(id int) {
+	var newFName, newLName, newAddress, newCity, newState, newPhoneNum, newEmail string
+	var editChoice int
+
+	fmt.Println("Select Choice to Edit\n1.First Name\n2.Last Name\n3.Address\n4.City\n5.State\n6.Phone Number\n7.Email-Id")
+	fmt.Println("Enter choice: ")
+	fmt.Scanln(&editChoice)
+	switch editChoice {
+	case 1:
+		fmt.Println("New First Name: ")
+		fmt.Scanln(&newFName)
+		result, _ := db.Exec("UPDATE contact SET first_name = ? WHERE id = ?", newFName, id)
+		id, _ := result.RowsAffected()
+		fmt.Println(id)
+	case 2:
+		fmt.Println("New Last Name: ")
+		fmt.Scanln(&newLName)
+		result, _ := db.Exec("UPDATE contact SET last_name = ? WHERE id = ?", newLName, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	case 3:
+		fmt.Println("New Address: ")
+		fmt.Scanln(&newAddress)
+		result, _ := db.Exec("UPDATE contact SET address = ? WHERE id = ?", newAddress, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	case 4:
+		fmt.Println("New City: ")
+		fmt.Scanln(&newCity)
+		result, _ := db.Exec("UPDATE contact SET city = ? WHERE id = ?", newCity, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	case 5:
+		fmt.Println("New State: ")
+		fmt.Scanln(&newState)
+		result, _ := db.Exec("UPDATE contact SET state = ? WHERE id = ?", newState, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	case 6:
+		fmt.Println("New Phone Number: ")
+		fmt.Scanln(&newPhoneNum)
+		result, _ := db.Exec("UPDATE contact SET phone_number = ? WHERE id = ?", newPhoneNum, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	case 7:
+		fmt.Println("New Email-Id: ")
+		fmt.Scanln(&newEmail)
+		result, _ := db.Exec("UPDATE contact SET email = ? WHERE id = ?", newEmail, id)
+		id, _ := result.RowsAffected()
+		fmt.Printf("Successfully updated %v contact..!", id)
+	}
+}
+
+/*
+@ Delete existing contact from DataBase
+*/
+func deleteContact() {
+	var delete_id int
+	fmt.Println("Enter ID to Delete Permanently: ")
+	fmt.Scanln(&delete_id)
+
+	result, err := db.Exec("DELETE from Contact WHERE id = ?", delete_id)
+	if err != nil {
+		panic(err.Error())
+	}
+	id, err := result.RowsAffected()
+
+	fmt.Printf("Successfully Deleted %v Row..!", id)
+
+}
+
+/*
+@ retrieving all the data from database
+*/
+
+func readDataFromDB() ([]Contact, error) {
+	var contacts []Contact
+
+	rows, err := db.Query("SELECT * FROM contact;")
+	if err != nil {
+		return nil, fmt.Errorf("error in query all contact: %v", err)
+	}
+	defer rows.Close()
+
+	// Loop through rows, using Scan to assign record to slice
+	for rows.Next() {
+		var person Contact
+		if err := rows.Scan(&person.id, &person.FirstName, &person.LastName, &person.Address, &person.City, &person.State, &person.PhoneNumber, &person.Email); err != nil {
+			return nil, fmt.Errorf("error in query all contact: %v", err)
+		}
+		contacts = append(contacts, person)
+	}
+	return contacts, nil
 }
 
 func main() {
-	fmt.Println("\n******WELCOME TO ADDRESS BOOK******")
-	var ContactList = []Contact{}
-	menu(&ContactList)
+	fmt.Println("***** WELCOME TO ADDRESS BOOK *****")
+	var err error
+
+	db, err = sql.Open("mysql", "root:Hemangi9@root@tcp(127.0.0.1:3306)/AddressBook")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
+
+	menu()
 }
